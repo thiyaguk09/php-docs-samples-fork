@@ -28,7 +28,7 @@ use Google\Cloud\Storage\StorageClient;
 
 /**
  * Retrieves the current encryption enforcement configurations for a bucket.
- * 
+ *
  * @param string $bucketName The ID of your GCS bucket (e.g. "my-bucket").
  */
 function get_bucket_encryption_enforcement_config(string $bucketName): void

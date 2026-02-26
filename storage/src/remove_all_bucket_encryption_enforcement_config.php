@@ -28,7 +28,7 @@ use Google\Cloud\Storage\StorageClient;
 
 /**
  * Removes all encryption enforcement configurations from a bucket.
- * 
+ *
  * @param string $bucketName The ID of your GCS bucket (e.g. "my-bucket").
  */
 function remove_all_bucket_encryption_enforcement_config(string $bucketName): void
@@ -36,7 +36,7 @@ function remove_all_bucket_encryption_enforcement_config(string $bucketName): vo
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);
 
-    // Setting these values to null in an update call will remove the 
+    // Setting these values to null in an update call will remove the
     // specific enforcement policies from the bucket metadata.
     $options = [
         'encryption' => [

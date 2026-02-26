@@ -28,7 +28,7 @@ use Google\Cloud\Storage\StorageClient;
 
 /**
  * Configures a bucket to enforce specific encryption types (e.g., CMEK-only).
- * 
+ *
  * @param string $bucketName The ID of your GCS bucket (e.g. "my-bucket").
  * @param string $kmsKeyName The name of the KMS key to be used as the default (e.g. "projects/my-project/...").
  */
@@ -37,7 +37,7 @@ function set_bucket_encryption_enforcement_config(string $bucketName, string $km
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);
 
-    // This configuration enforces that all objects uploaded to the bucket 
+    // This configuration enforces that all objects uploaded to the bucket
     // must use Customer Managed Encryption Keys (CMEK).
     $options = [
         'encryption' => [
