@@ -624,7 +624,7 @@ class storageTest extends TestCase
         $finalOutput = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
             self::$kmsEncryptedBucketName
         ]);
-        
+
         $this->assertStringContainsString('No encryption configuration found (Default GMEK is active).', $finalOutput);
     }
 
