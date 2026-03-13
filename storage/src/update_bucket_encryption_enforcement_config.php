@@ -23,22 +23,34 @@
 
 namespace Google\Cloud\Samples\Storage;
 
-# [START storage_remove_all_encryption_enforcement_config]
+# [START storage_update_encryption_enforcement_config]
 use Google\Cloud\Storage\StorageClient;
 
 /**
- * Removes all encryption enforcement configurations from a bucket.
+ * Updates or removes encryption enforcement configurations from a bucket.
  *
  * @param string $bucketName The ID of your GCS bucket (e.g. "my-bucket").
  */
-function remove_all_bucket_encryption_enforcement_config(string $bucketName): void
+function update_bucket_encryption_enforcement_config(string $bucketName): void
 {
     $storage = new StorageClient();
     $bucket = $storage->bucket($bucketName);
 
-    // Setting these values to null in an update call will remove the
-    // specific enforcement policies from the bucket metadata.
-    $options = [
+    // Update a specific encryption type's restriction mode
+    // This partial update preserves other existing encryption settings.
+    $updateOptions = [
+        'encryption' => [
+            'googleManagedEncryptionEnforcementConfig' => [
+                'restrictionMode' => 'FullyRestricted'
+            ]
+        ]
+    ];
+    $bucket->update($updateOptions);
+    printf('Google-managed encryption enforcement set to FullyRestricted for %s.' . PHP_EOL, $bucketName);
+
+    // Remove all encryption enforcement configurations altogether
+    // Setting these values to null removes the policies from the bucket metadata.
+    $clearOptions = [
         'encryption' => [
             'defaultKmsKeyName' => null,
             'googleManagedEncryptionEnforcementConfig' => null,
@@ -47,11 +59,10 @@ function remove_all_bucket_encryption_enforcement_config(string $bucketName): vo
         ],
     ];
 
-    $bucket->update($options);
-
-    printf('Encryption enforcement configuration removed from bucket %s.' . PHP_EOL, $bucketName);
+    $bucket->update($clearOptions);
+    printf('All encryption enforcement configurations removed from bucket %s.' . PHP_EOL, $bucketName);
 }
-# [END storage_remove_all_encryption_enforcement_config]
+# [END storage_update_encryption_enforcement_config]
 
 // The following 2 lines are only needed to run the samples
 require_once __DIR__ . '/../../testing/sample_helpers.php';

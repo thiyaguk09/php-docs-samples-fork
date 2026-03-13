@@ -603,22 +603,28 @@ class storageTest extends TestCase
     }
 
     /** @depends testGetBucketEncryptionEnforcementConfig */
-    public function testRemoveAllBucketEncryptionEnforcementConfig()
+    public function testUpdateBucketEncryptionEnforcementConfig()
     {
-        $output = $this->runFunctionSnippet('remove_all_bucket_encryption_enforcement_config', [
+        $output = $this->runFunctionSnippet('update_bucket_encryption_enforcement_config', [
             self::$kmsEncryptedBucketName
         ]);
 
-        $this->assertEquals($output, sprintf(
-            'Encryption enforcement configuration removed from bucket %s.' . PHP_EOL,
-            self::$kmsEncryptedBucketName
-        ));
+        $this->assertStringContainsString(
+            sprintf('Google-managed encryption enforcement set to FullyRestricted for %s.', self::$kmsEncryptedBucketName),
+            $output
+        );
+
+        $this->assertStringContainsString(
+            sprintf('All encryption enforcement configurations removed from bucket %s.', self::$kmsEncryptedBucketName),
+            $output
+        );
 
         // Final verification: Ensure 'Get' now shows no configuration
-        sleep(1);
+        sleep(2);
         $finalOutput = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
             self::$kmsEncryptedBucketName
         ]);
+        
         $this->assertStringContainsString('No encryption configuration found (Default GMEK is active).', $finalOutput);
     }
 
