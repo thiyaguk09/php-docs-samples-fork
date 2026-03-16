@@ -23,7 +23,7 @@
 
 namespace Google\Cloud\Samples\Storage;
 
-# [START storage_get_encryption_enforcement_config]
+# [START storage_get_bucket_encryption_enforcement_config]
 use Google\Cloud\Storage\StorageClient;
 
 /**
@@ -59,7 +59,7 @@ function get_bucket_encryption_enforcement_config(string $bucketName): void
     $printConfig('Customer Managed (CMEK) Enforcement', $enc['customerManagedEncryptionEnforcementConfig'] ?? null);
     $printConfig('Customer Supplied (CSEK) Enforcement', $enc['customerSuppliedEncryptionEnforcementConfig'] ?? null);
 }
-# [END storage_get_encryption_enforcement_config]
+# [END storage_get_bucket_encryption_enforcement_config]
 
 // The following 2 lines are only needed to run the samples
 require_once __DIR__ . '/../../testing/sample_helpers.php';

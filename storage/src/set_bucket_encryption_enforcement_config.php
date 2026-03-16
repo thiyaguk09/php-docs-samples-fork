@@ -23,7 +23,7 @@
 
 namespace Google\Cloud\Samples\Storage;
 
-# [START storage_set_encryption_enforcement_config]
+# [START storage_set_bucket_encryption_enforcement_config]
 use Google\Cloud\Storage\StorageClient;
 
 /**
@@ -57,7 +57,7 @@ function set_bucket_encryption_enforcement_config(string $bucketName, string $km
 
     printf('Encryption enforcement configuration updated for bucket %s.' . PHP_EOL, $bucketName);
 }
-# [END storage_set_encryption_enforcement_config]
+# [END storage_set_bucket_encryption_enforcement_config]
 
 // The following 2 lines are only needed to run the samples
 require_once __DIR__ . '/../../testing/sample_helpers.php';
