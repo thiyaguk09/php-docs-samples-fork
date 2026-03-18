@@ -573,6 +573,69 @@ class storageTest extends TestCase
         );
     }
 
+    public function testSetBucketEncryptionEnforcementConfig()
+    {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
+        $output = $this->runFunctionSnippet('set_bucket_encryption_enforcement_config', [
+            $enforcementBucketName,
+            $this->keyName(),
+        ]);
+
+        $this->assertEquals($output, sprintf(
+            'Bucket %s created with encryption enforcement configuration.' . PHP_EOL,
+            $enforcementBucketName
+        ));
+    }
+
+    /** @depends testSetBucketEncryptionEnforcementConfig */
+    public function testGetBucketEncryptionEnforcementConfig()
+    {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
+        sleep(2);
+        $output = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
+            $enforcementBucketName
+        ]);
+
+        $this->assertStringContainsString(
+            sprintf('Encryption enforcement configuration for bucket %s.', $enforcementBucketName),
+            $output
+        );
+        $this->assertStringContainsString(sprintf('Default KMS Key: %s', $this->keyName()), $output);
+        $this->assertStringContainsString('Google Managed (GMEK) Enforcement:' . PHP_EOL . '  Mode: FullyRestricted', $output);
+        $this->assertStringContainsString('Customer Supplied (CSEK) Enforcement:' . PHP_EOL . '  Mode: FullyRestricted', $output);
+        $this->assertStringContainsString('Customer Managed (CMEK) Enforcement:' . PHP_EOL . '  Mode: NotRestricted', $output);
+    }
+
+    /** @depends testGetBucketEncryptionEnforcementConfig */
+    public function testUpdateBucketEncryptionEnforcementConfig()
+    {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
+        $output = $this->runFunctionSnippet('update_bucket_encryption_enforcement_config', [
+            $enforcementBucketName
+        ]);
+
+        $this->assertStringContainsString(
+            sprintf('Google-managed encryption enforcement set to FullyRestricted for %s.', $enforcementBucketName),
+            $output
+        );
+
+        $this->assertStringContainsString(
+            sprintf('All encryption enforcement configurations removed from bucket %s.', $enforcementBucketName),
+            $output
+        );
+
+        // Final verification: Ensure 'Get' now shows no configuration
+        sleep(2);
+        $finalOutput = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
+            $enforcementBucketName
+        ]);
+
+        $this->assertStringContainsString('No encryption configuration found (Default GMEK is active).', $finalOutput);
+    }
+
     public function testBucketVersioning()
     {
         $output = self::runFunctionSnippet('enable_versioning', [
