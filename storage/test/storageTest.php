@@ -32,7 +32,6 @@ class storageTest extends TestCase
     use TestTrait;
 
     private static $bucketName;
-    private static $kmsEncryptedBucketName;
     private static $storage;
     private static $tempBucket;
     private static $objectRetentionBucketName;
@@ -41,7 +40,6 @@ class storageTest extends TestCase
     {
         self::checkProjectEnvVars();
         self::$bucketName = self::requireEnv('GOOGLE_STORAGE_BUCKET');
-        self::$kmsEncryptedBucketName = self::$bucketName . '-kms-encrypted';
         self::$storage = new StorageClient();
         self::$tempBucket = self::$storage->createBucket(
             sprintf('%s-test-bucket-%s', self::$projectId, time())
@@ -513,14 +511,16 @@ class storageTest extends TestCase
 
     public function testEnableDefaultKmsKey()
     {
+        $kmsEncryptedBucketName = self::$bucketName . '-kms-encrypted';
+
         $output = $this->runFunctionSnippet('enable_default_kms_key', [
-            self::$kmsEncryptedBucketName,
+            $kmsEncryptedBucketName,
             $this->keyName(),
         ]);
 
         $this->assertEquals($output, sprintf(
             'Default KMS key for %s was set to %s' . PHP_EOL,
-            self::$kmsEncryptedBucketName,
+            $kmsEncryptedBucketName,
             $this->keyName()
         ));
     }
@@ -528,12 +528,14 @@ class storageTest extends TestCase
     /** @depends testEnableDefaultKmsKey */
     public function testUploadWithKmsKey()
     {
+        $kmsEncryptedBucketName = self::$bucketName . '-kms-encrypted';
+
         $objectName = 'test-object-' . time();
         $uploadFrom = tempnam(sys_get_temp_dir(), '/tests');
         file_put_contents($uploadFrom, 'foo' . rand());
 
         $output = $this->runFunctionSnippet('upload_with_kms_key', [
-            self::$kmsEncryptedBucketName,
+            $kmsEncryptedBucketName,
             $objectName,
             $uploadFrom,
             $this->keyName(),
@@ -542,7 +544,7 @@ class storageTest extends TestCase
         $this->assertEquals($output, sprintf(
             'Uploaded %s to gs://%s/%s using encryption key %s' . PHP_EOL,
             basename($uploadFrom),
-            self::$kmsEncryptedBucketName,
+            $kmsEncryptedBucketName,
             $objectName,
             $this->keyName()
         ));
@@ -553,11 +555,12 @@ class storageTest extends TestCase
     /** @depends testUploadWithKmsKey */
     public function testObjectGetKmsKey(string $objectName)
     {
-        $bucket = self::$storage->bucket(self::$kmsEncryptedBucketName);
+        $kmsEncryptedBucketName = self::$bucketName . '-kms-encrypted';
+        $bucket = self::$storage->bucket($kmsEncryptedBucketName);
         $objectInfo = $bucket->object($objectName)->info();
 
         $output = $this->runFunctionSnippet('object_get_kms_key', [
-            self::$kmsEncryptedBucketName,
+            $kmsEncryptedBucketName,
             $objectName,
         ]);
 
@@ -570,30 +573,33 @@ class storageTest extends TestCase
         );
     }
 
-    /** @depends testEnableDefaultKmsKey */
     public function testSetBucketEncryptionEnforcementConfig()
     {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
         $output = $this->runFunctionSnippet('set_bucket_encryption_enforcement_config', [
-            self::$kmsEncryptedBucketName,
+            $enforcementBucketName,
             $this->keyName(),
         ]);
 
         $this->assertEquals($output, sprintf(
-            'Encryption enforcement configuration updated for bucket %s.' . PHP_EOL,
-            self::$kmsEncryptedBucketName
+            'Bucket %s created with encryption enforcement configuration.' . PHP_EOL,
+            $enforcementBucketName
         ));
     }
 
     /** @depends testSetBucketEncryptionEnforcementConfig */
     public function testGetBucketEncryptionEnforcementConfig()
     {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
         sleep(2);
         $output = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
-            self::$kmsEncryptedBucketName
+            $enforcementBucketName
         ]);
 
         $this->assertStringContainsString(
-            sprintf('Encryption enforcement configuration for bucket %s.', self::$kmsEncryptedBucketName),
+            sprintf('Encryption enforcement configuration for bucket %s.', $enforcementBucketName),
             $output
         );
         $this->assertStringContainsString(sprintf('Default KMS Key: %s', $this->keyName()), $output);
@@ -605,24 +611,26 @@ class storageTest extends TestCase
     /** @depends testGetBucketEncryptionEnforcementConfig */
     public function testUpdateBucketEncryptionEnforcementConfig()
     {
+        $enforcementBucketName = self::$bucketName . '-enc-enforcement';
+
         $output = $this->runFunctionSnippet('update_bucket_encryption_enforcement_config', [
-            self::$kmsEncryptedBucketName
+            $enforcementBucketName
         ]);
 
         $this->assertStringContainsString(
-            sprintf('Google-managed encryption enforcement set to FullyRestricted for %s.', self::$kmsEncryptedBucketName),
+            sprintf('Google-managed encryption enforcement set to FullyRestricted for %s.', $enforcementBucketName),
             $output
         );
 
         $this->assertStringContainsString(
-            sprintf('All encryption enforcement configurations removed from bucket %s.', self::$kmsEncryptedBucketName),
+            sprintf('All encryption enforcement configurations removed from bucket %s.', $enforcementBucketName),
             $output
         );
 
         // Final verification: Ensure 'Get' now shows no configuration
         sleep(2);
         $finalOutput = $this->runFunctionSnippet('get_bucket_encryption_enforcement_config', [
-            self::$kmsEncryptedBucketName
+            $enforcementBucketName
         ]);
 
         $this->assertStringContainsString('No encryption configuration found (Default GMEK is active).', $finalOutput);
